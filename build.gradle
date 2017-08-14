@@ -1,0 +1,40 @@
+plugins {
+    id 'war'
+    id 'org.akhikhl.gretty' version '2.0.0'
+    id 'org.ajoberstar.git-publish' version '0.3.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+gitPublish {
+    repoUri = 'https://github.com/jdpgrailsdev/school-compare.git'
+    branch = 'gh-pages'
+    contents {
+        from(file('src/main/html')) {
+            into '.'
+        }
+    }
+    commitMessage = 'Updated site content.'
+}
+
+gretty {
+    httpPort = 8820
+    contextPath = 'school-compare'
+    servletContainer = 'jetty9'
+}
+
+task copyContent(type: Copy) {
+    from 'src/main/html'
+    into "$buildDir/inplaceWebapp"
+}
+
+task publish(dependsOn: 'gitPublishPush')
+
+afterEvaluate { project ->
+    // Copy the site content before launching the local Jetty server.
+    project.tasks.jettyRun.dependsOn([project.tasks.copyContent])
+}
